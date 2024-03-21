@@ -57,7 +57,8 @@ def solve_ELR(omega,theta): #eq.26, 27, 28; solve the ELR11 equations
     else:
         #first we solve equation 30 for rtw
         q = root(fun=eq30,args=(theta, omega), x0=1.0)
-        rtw = asscalar(q['x'])
+        # rtw = asscalar(q['x'])
+        rtw = q['x'].item()
 
         #the following are special solutions for extreme values of theta
         w2r3=pow(omega,2)*pow(rtw,3)
@@ -73,7 +74,8 @@ def solve_ELR(omega,theta): #eq.26, 27, 28; solve the ELR11 equations
 
         else: #general case for Fw
             q = root(fun=eq24,args=(theta, omega, rtw), x0=theta)
-            phi = asscalar(q['x'])
+            # phi = asscalar(q['x'])
+            phi = q['x'].item()
             
             Fw = pow(tan(phi)/tan(theta), 2)
 
