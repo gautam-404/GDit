@@ -210,13 +210,17 @@ def geometric_factors(omega, i, n_nu=50, n_phi=50, do_checks=False):
     C_T = pow( C_L * surface_area / projected_area / 4, 0.25 )
 
     if do_checks:
-        surface_area_check = abs( surface_area / spheroid_surface_area(Rp,Re) - 1.0)
-        projected_area_check = abs( projected_area / ellipse(Rp, Re, i) - 1.0)
+        surface_area_ratio = surface_area / spheroid_surface_area(Rp,Re)
+        surface_area_check = abs( surface_area_ratio - 1.0)
+        projected_area_ratio = projected_area / ellipse(Rp, Re, i)
+        projected_area_check = abs( projected_area_ratio - 1.0)
 
         if surface_area_check > 0.001 or projected_area_check > 0.001:
-            print(' omega, i = {0:n}, {1:n}'.format(omega,i))
-            print(' surface area ratio: {0:n}'.format(surface_area_ratio))
-            print(' projected area ratio: {0:n}'.format(projected_area_ratio))
+            print('Warning: surface area or projected area integration may be inaccurate')
+            print(f'Try increasing n_nu or n_phi')
+            print(f'Omega = {omega:.3f} and i = {np.degrees(i):.2f} degrees')
+            print(f'Surface area ratio: {surface_area_ratio:.3f}') 
+            print(f'Projected area ratio: {projected_area_ratio:.3f}')
         
     return C_T, C_L
 
