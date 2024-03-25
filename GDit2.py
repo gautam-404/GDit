@@ -143,6 +143,7 @@ def geometric_factors(omega, i, n_nu=50, n_phi=50, do_checks=True):
         return np.ones(2)
     
     #line of sight, inclination angle i
+    #Z-axis aligned with the rotation axis and passes through the pole
     LOS = np.array([np.sin(i), 0, np.cos(i)])
 
     # #spherical angles
