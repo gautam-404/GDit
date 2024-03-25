@@ -137,21 +137,21 @@ def ellipse(Rp, Re, i):
     b=beta(theta=np.pi/2-i,q=Rp/Re)
     return np.pi*Re*Re*b
 
-def geometric_factors(omega, i, n_nu=50, n_phi=50, do_checks=False):
+def geometric_factors(omega, i, n_nu=50, n_phi=50, do_checks=True):
     """solves for geometric factors C_T and C_L for arbitrary omega, and inclination"""
     if omega==0: #perfect sphere
         return np.ones(2)
     
-    #line of sight, inclinatiron angle i
+    #line of sight, inclination angle i
     # LOS = np.array([np.cos(i), 0, np.sin(i)])
     LOS = np.array([0, np.sin(i), np.cos(i)])
 
-    #spherical angles
-    phi_array = np.linspace(-np.pi, np.pi, n_phi)
-    dphi=np.diff(phi_array)[0]
+    # #spherical angles
     nu_array = np.linspace(-np.pi/2, np.pi/2, n_nu)
-    dnu=np.diff(nu_array)[0]
-
+    phi_array = np.linspace(-np.pi, np.pi, n_phi)
+    dnu = nu_array[1] - nu_array[0]
+    dphi = phi_array[1] - phi_array[0]
+    
     #find the polar radius
     Re=1.
     Rp=Rp_div_Re(omega)
@@ -173,7 +173,7 @@ def geometric_factors(omega, i, n_nu=50, n_phi=50, do_checks=False):
     for j,nu in enumerate(nu_array):
 
         theta = np.pi/2 - nu
-        r,T,F=solve_ELR(omega=omega,theta=theta)
+        r,T,F = solve_ELR(omega=omega,theta=theta)
         
         cos_nu = np.cos(nu)
         sin_nu = np.sin(nu)
@@ -194,29 +194,30 @@ def geometric_factors(omega, i, n_nu=50, n_phi=50, do_checks=False):
             e_mu = np.array([e_mu_x, e_mu_y, e_mu_z]) / K
 
             dArea = h_nu * h_phi
-            proj = max(0,np.dot(e_mu,LOS)) #only projected toward observer
+            proj = max(0, np.dot(e_mu, LOS)) #only projected toward observer
             phi_int1[k] = dArea
             phi_int2[k] = dArea*proj
 
         #phi integral at constant nu
-        nu_int1[j] = simpson(y=phi_int1,dx=dphi) #total surface area
-        nu_int2[j] = simpson(y=phi_int2,dx=dphi) #projected area
+        nu_int1[j] = simpson(y=phi_int1, dx=dphi) #total surface area
+        nu_int2[j] = simpson(y=phi_int2, dx=dphi) #projected area
         nu_int3[j] = F*nu_int2[j] #integral of Flux_ratio, projected
         nu_int4[j] = F*nu_int1[j] #integral of Flux_ratio, total
 
     #nu integrals
     surface_area = simpson(y=nu_int1, dx=dnu)
     projected_area = simpson(y=nu_int2, dx=dnu)
+    projected_flux = simpson(y=nu_int3, dx=dnu)
     total_flux = simpson(y=nu_int4, dx=dnu)
     
+    C_L = 4 * projected_flux / total_flux
+    C_T = pow( C_L * surface_area / projected_area / 4, 0.25 )
+
     # C_L = 4 * simpson(y=nu_int3, dx=dnu) / total_flux
     # C_T = pow( C_L * surface_area / projected_area / 4, 0.25 )
 
-    C_L = 4 * simpson(y=nu_int3, dx=dnu) / total_flux
-    C_T = pow( C_L * surface_area / projected_area / 4, 0.25 )
-
     if do_checks:
-        surface_area_ratio = surface_area / spheroid_surface_area(Rp,Re)
+        surface_area_ratio = surface_area / spheroid_surface_area(Rp, Re)
         surface_area_check = abs( surface_area_ratio - 1.0)
         projected_area_ratio = projected_area / ellipse(Rp, Re, i)
         projected_area_check = abs( projected_area_ratio - 1.0)
